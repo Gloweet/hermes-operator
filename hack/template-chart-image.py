@@ -32,11 +32,18 @@ caught after Helm install but before the operator did anything useful.
 """
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
 # --- Splice 1: image fields ---
 IMAGE_ORIGINAL = "image: controller:latest"
+# Gloweet fork: `kustomize build config/default` applies the images: transform
+# (config/manager/kustomization.yaml), so the rendered line already reads
+# `image: ghcr.io/<owner>/hermes-operator:<tag>` and no longer matches
+# IMAGE_ORIGINAL. Match that resolved form too, otherwise the chart bakes a
+# fixed image and values.image.* stays dead.
+IMAGE_RESOLVED_RE = re.compile(r"^image:\s*\S*/hermes-operator:\S+$")
 IMAGE_TEMPLATED = (
     'image: "{{ .Values.image.repository }}:'
     '{{ .Values.image.tag | default .Chart.AppVersion }}"'
@@ -68,7 +75,7 @@ def rewrite(path: Path) -> tuple[int, int]:
         stripped = line.lstrip()
 
         # Splice 1: image fields
-        if stripped == IMAGE_ORIGINAL:
+        if stripped == IMAGE_ORIGINAL or IMAGE_RESOLVED_RE.match(stripped):
             indent = line[: len(line) - len(stripped)]
             out_lines.append(f"{indent}{IMAGE_TEMPLATED}")
             out_lines.append(f"{indent}{IMAGE_PULL_POLICY}")
