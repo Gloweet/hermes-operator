@@ -23,7 +23,7 @@ env:
   # IMAGE_NAME must be all-lowercase for Docker registry compatibility.
   # github.repository = "UndermountainCC/hermes-operator" (mixed case),
   # so we hardcode the lowercase form here.
-  IMAGE_NAME: undermountaincc/hermes-operator
+  IMAGE_NAME: gloweet/hermes-operator
 
 jobs:
   # ── amd64 build ─────────────────────────────────────────────────────────────
@@ -223,4 +223,4 @@ jobs:
 
       - name: Push chart to GHCR OCI registry
         run: |
-          helm push dist/hermes-operator-*.tgz oci://ghcr.io/undermountaincc/charts
+          helm push dist/hermes-operator-*.tgz oci://ghcr.io/gloweet/charts
