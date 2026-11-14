@@ -65,7 +65,10 @@ func desiredDeployment(agent *hermesv1alpha1.HermesAgent) *appsv1.Deployment {
 				Exec: &corev1.ExecAction{Command: probeCmd},
 			},
 			PeriodSeconds:    10,
-			TimeoutSeconds:   3,
+			// The probe is a full Python CLI start plus a gateway status read.
+			// Measured at ~2s idle and ~5s under load, so the old 3s ceiling
+			// made pods flap between Ready and NotReady with no actual fault.
+			TimeoutSeconds:   10,
 			FailureThreshold: 3,
 			SuccessThreshold: 1,
 		},
@@ -74,7 +77,7 @@ func desiredDeployment(agent *hermesv1alpha1.HermesAgent) *appsv1.Deployment {
 				Exec: &corev1.ExecAction{Command: probeCmd},
 			},
 			PeriodSeconds:    30,
-			TimeoutSeconds:   5,
+			TimeoutSeconds:   15,
 			FailureThreshold: 5,
 			SuccessThreshold: 1,
 			// Avoid SIGKILL during the early startup window — gateway can take
